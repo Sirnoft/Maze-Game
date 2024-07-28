@@ -1,8 +1,14 @@
+from typing import Any
 import pygame
 from random import choice
 
+
 RES = WIDTH, HEIGHT = 1202,902
 TILESIZE = 100
+
+WHITE = (255,255,255)
+BLACK = (0,0,0)
+DARKRED =(207, 0, 0)
 
 columns, rows = int(WIDTH/TILESIZE),int(HEIGHT/TILESIZE)
 
@@ -10,8 +16,75 @@ pygame.init()
 screen = pygame.display.set_mode(RES)
 clock = pygame.time.Clock()
 
-
 class Cell():
+    def __init__(self,x:int,y:int) -> None:
+        self.x = x
+        self.y = y
+
+        self.walls = {
+            "TOP" : True,
+            "BOTTOM" : True,
+            "RIGHT" : True,
+            "LEFT" : True
+        }
+        self.visited = False
+        
+    def __repr__(self) -> str:
+        return f"{self.x},{self.y}"
+
+
+    def draw(self) -> None:
+        x,y = self.x * TILESIZE, self.y * TILESIZE
+        if self.visited:
+            pygame.draw.rect(screen,DARKRED,(x,y,TILESIZE,TILESIZE))
+
+        if self.walls["TOP"]:
+            pygame.draw.line(screen,WHITE,(x,y),(x+TILESIZE,y),2)
+        if self.walls["BOTTOM"]:
+            pygame.draw.line(screen,WHITE,(x+TILESIZE,y+TILESIZE),(x+TILESIZE,y+TILESIZE),2)
+        if self.walls["RIGHT"]:
+            pygame.draw.line(screen,WHITE,(x+TILESIZE,y),(x+TILESIZE,y+TILESIZE),2)
+        if self.walls["LEFT"]:
+            pygame.draw.line(screen,WHITE,(x,y+TILESIZE),(x,y),2)
+
+    def checkCell(self,direction:str) -> None:
+        x, y = self.x, self.y
+        direction = direction.upper()
+
+        position = gridCells[x][y]
+
+        match direction:
+            case "TOP":
+                try:
+                    return gridCells[x-1][y]
+                except:
+                    return False
+            case "BOTTOM":
+                try:
+                    return gridCells[x+1][y]
+                except:
+                    return False
+            case "RIGHT":
+                try:
+                    return gridCells[x][y+1]
+                except:
+                    return False
+            case "LEFT":
+                try:
+                    return gridCells[x][y-1]
+                except:
+                    return False
+
+
+
+    def checkNeighbours(self) -> None:
+        neighbours = []
+
+        top = gridCells[self]
+
+
+
+"""class Cell():
     def __init__(self,X,Y) -> None:
         self.x = X
         self.y = Y
@@ -19,7 +92,8 @@ class Cell():
             "TOP" : True,
             "BOTTOM" : True,
             "RIGHT" : True,
-            "LEFT" : True}
+            "LEFT" : True
+            }
         
         self.visited = False
 
@@ -82,12 +156,22 @@ def removeWalls(current,next):
     elif dy == -1:
         current.walls['BOTTOM'] = False
         next.walls['TOP'] = False
+"""
+gridCells = []
+temp = []
+for col in range(columns):
+    for row in range(rows):
+        temp.append(Cell(col,row))
+    gridCells.append(temp)
+    temp = []
 
-gridCells = [Cell(col,row) for col in range(columns) for row in range(rows)]
-currentCell = gridCells[0]
-stack = []
 
+stack = [choice(choice(gridCells))]
 
+currentCell = stack[0]
+
+#print(gridCells[0])
+#print(gridCells[1])
 
 while True:
     for event in pygame.event.get():
@@ -96,22 +180,12 @@ while True:
 
     screen.fill("black")
 
-    [cell.draw() for cell in gridCells]
+    [cell.draw() for layer in gridCells for cell in layer]
     currentCell.visited = True
-    currentCell.draw_current()
-
-    next_cell = currentCell.check_neighbours()
-
-    if next_cell:
-        next_cell.visited = True
-        stack.append(currentCell)
-        removeWalls(currentCell,next_cell)
-        currentCell = next_cell
-    elif stack:
-        currentCell = stack.pop()
-
-  
+    nextCell = currentCell.checkCell("TOP")
+    nextCell.visited = True
+    
     pygame.display.flip()
-    clock.tick(60)
+    clock.tick(200)
 
 pygame.quit()
