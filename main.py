@@ -1,10 +1,9 @@
-from typing import Any
 import pygame
 from random import choice
 
 
 RES = WIDTH, HEIGHT = 1202,902
-TILESIZE = 100
+TILESIZE = 50
 
 WHITE = (255,255,255)
 BLACK = (0,0,0)
@@ -33,7 +32,7 @@ class Cell():
     def draw(self) -> None:
         x,y = self.x * TILESIZE, self.y * TILESIZE
         if self.visited:
-            pygame.draw.rect(screen,DARKRED,(x,y,TILESIZE,TILESIZE))
+            pygame.draw.rect(screen,BLACK,(x,y,TILESIZE,TILESIZE))
 
         if self.walls["TOP"]:
             pygame.draw.line(screen,WHITE,(x,y),(x+TILESIZE,y),2)
@@ -80,62 +79,26 @@ class Cell():
         if left != False and not left.visited:
             neighbours.append(left)
 
-        return neighbours
+        return choice(neighbours) if len(neighbours) > 0 else False
 
-"""class Cell():
-    def draw_current(self):
-        x,y = self.x * TILESIZE, self.y * TILESIZE
-        pygame.draw.rect(screen,pygame.Color('white'),(x+2,y+2,TILESIZE,TILESIZE))
+    def removeWalls(self,next) -> None:
+        dx = self.x - next.x
+        dy = self.y - next.y
 
-    def draw(self) -> None:
-        x,y = self.x * TILESIZE, self.y * TILESIZE
-        if self.visited == True:
-            pygame.draw.rect(screen,pygame.Color('black'),(x,y,TILESIZE,TILESIZE))
+        if dx == 1:
+            self.walls["LEFT"] = False
+            next.walls["RIGHT"] = False
+        elif dx == -1:
+            self.walls["RIGHT"] = False
+            next.walls["LEFT"] = False
+        
+        if dy == 1:
+            self.walls["TOP"] = False
+            next.walls["BOTTOM"] = False
+        elif dy == -1:
+            self.walls["BOTTOM"] = False
+            next.walls["TOP"] = False
 
-        if self.walls["TOP"]:
-            pygame.draw.line(screen,pygame.Color('red'),(x,y),(x+TILESIZE,y),2)
-        if self.walls["BOTTOM"]:
-            pygame.draw.line(screen,pygame.Color('red'),(x + TILESIZE,y+TILESIZE),(x+TILESIZE,y+TILESIZE),2)
-        if self.walls["RIGHT"]:
-            pygame.draw.line(screen,pygame.Color('red'),(x + TILESIZE,y),(x+TILESIZE,y+TILESIZE),2)
-        if self.walls["LEFT"]:
-            pygame.draw.line(screen,pygame.Color('red'),(x,y+TILESIZE),(x,y),2)
-
-    def check_neighbours(self):
-        neighbours = []
-        top = self.check_cell(self.x,self.y-1)
-        right = self.check_cell(self.x + 1, self.y)
-        bottom = self.check_cell(self.x,self.y+1)
-        left = self.check_cell(self.x -1,self.y)
-
-        if top and not top.visited:
-            neighbours.append(top)
-        if right and not right.visited:
-            neighbours.append(right)
-        if bottom and not bottom.visited:
-            neighbours.append(bottom)
-        if left and not left.visited:
-            neighbours.append(left)
-
-        return choice(neighbours) if neighbours else False
-
-def removeWalls(current,next):
-    dx = current.x - next.x
-    if dx == 1:
-        current.walls['LEFT'] = False
-        next.walls['RIGHT'] = False
-    elif dx == -1:
-        current.walls['RIGHT'] = False
-        next.walls['LEFT'] = False
-
-    dy = current.y - next.y
-    if dy == 1:
-            current.walls['TOP'] = False
-            next.walls['BOTTOM'] = False
-    elif dy == -1:
-        current.walls['BOTTOM'] = False
-        next.walls['TOP'] = False
-"""
 gridCells = []
 temp = []
 for col in range(columns):
@@ -147,8 +110,6 @@ for col in range(columns):
 stack = [choice(choice(gridCells))]
 
 currentCell = stack[0]
-neighbours = currentCell.checkNeighbours()
-
 
 while True:
     for event in pygame.event.get():
@@ -159,11 +120,18 @@ while True:
 
     [cell.draw() for layer in gridCells for cell in layer]
     currentCell.visited = True
+    
+    if currentCell.checkNeighbours():
+        nextCell = currentCell.checkNeighbours()
+        stack.append(nextCell)
+        currentCell.removeWalls(nextCell)
+        nextCell.visited = True
+        currentCell = nextCell
+    elif stack:
+        currentCell = stack.pop()
 
-    for cell in neighbours:
-        cell.visited = True
 
     pygame.display.flip()
-    clock.tick(200)
+    clock.tick(60)
 
 pygame.quit()
