@@ -29,9 +29,6 @@ class Cell():
         }
         self.visited = False
         
-    def __repr__(self) -> str:
-        return f"{self.x},{self.y}"
-
 
     def draw(self) -> None:
         x,y = self.x * TILESIZE, self.y * TILESIZE
@@ -47,56 +44,45 @@ class Cell():
         if self.walls["LEFT"]:
             pygame.draw.line(screen,WHITE,(x,y+TILESIZE),(x,y),2)
 
-    def checkCell(self,direction:str) -> None:
+    def checkCell(self,direction:str) -> bool:
         x, y = self.x, self.y
         direction = direction.upper()
 
         position = gridCells[x][y]
 
-        match direction:
-            case "TOP":
-                try:
-                    return gridCells[x-1][y]
-                except:
-                    return False
-            case "BOTTOM":
-                try:
-                    return gridCells[x+1][y]
-                except:
-                    return False
-            case "RIGHT":
-                try:
-                    return gridCells[x][y+1]
-                except:
-                    return False
-            case "LEFT":
-                try:
-                    return gridCells[x][y-1]
-                except:
-                    return False
-
-
-
-    def checkNeighbours(self) -> None:
+        try:
+            if direction == "TOP" and y - 1 != -1:
+                return gridCells[x][y-1]
+            if direction == "BOTTOM":
+                return gridCells[x][y+1]
+            if direction == "RIGHT" and x - 1 > -1:
+                return gridCells[x-1][y]
+            if direction == "LEFT":
+                return gridCells[x+1][y]
+        except:
+            return False
+        return False
+    
+    def checkNeighbours(self) -> list:
         neighbours = []
 
-        top = gridCells[self]
+        top = self.checkCell("TOP")
+        bottom = self.checkCell("BOTTOM")
+        right = self.checkCell("RIGHT")
+        left = self.checkCell("LEFT")
 
+        if top != False and not top.visited:
+            neighbours.append(top)
+        if bottom != False and not bottom.visited:
+            neighbours.append(bottom)
+        if right != False and not right.visited:
+            neighbours.append(right)
+        if left != False and not left.visited:
+            neighbours.append(left)
 
+        return neighbours
 
 """class Cell():
-    def __init__(self,X,Y) -> None:
-        self.x = X
-        self.y = Y
-        self.walls = {
-            "TOP" : True,
-            "BOTTOM" : True,
-            "RIGHT" : True,
-            "LEFT" : True
-            }
-        
-        self.visited = False
-
     def draw_current(self):
         x,y = self.x * TILESIZE, self.y * TILESIZE
         pygame.draw.rect(screen,pygame.Color('white'),(x+2,y+2,TILESIZE,TILESIZE))
@@ -115,13 +101,6 @@ class Cell():
         if self.walls["LEFT"]:
             pygame.draw.line(screen,pygame.Color('red'),(x,y+TILESIZE),(x,y),2)
 
-    def check_cell(self,x,y):
-        find_index = lambda x,y: x+(y*columns)
-
-        if x < 0 or x > columns - 1 or y < 0 or y > rows - 1:
-            return False
-        return gridCells[find_index(x,y)]
-    
     def check_neighbours(self):
         neighbours = []
         top = self.check_cell(self.x,self.y-1)
@@ -165,13 +144,11 @@ for col in range(columns):
     gridCells.append(temp)
     temp = []
 
-
 stack = [choice(choice(gridCells))]
 
 currentCell = stack[0]
+neighbours = currentCell.checkNeighbours()
 
-#print(gridCells[0])
-#print(gridCells[1])
 
 while True:
     for event in pygame.event.get():
@@ -182,9 +159,10 @@ while True:
 
     [cell.draw() for layer in gridCells for cell in layer]
     currentCell.visited = True
-    nextCell = currentCell.checkCell("TOP")
-    nextCell.visited = True
-    
+
+    for cell in neighbours:
+        cell.visited = True
+
     pygame.display.flip()
     clock.tick(200)
 
