@@ -81,7 +81,8 @@ class Player():
                     if self.lastDirection == "UP":
                         self.y = rect.bottom
                         self.disabledDirection["UP"] = True
-                        
+                    else:
+                        self.resetDirections()
     def resetDirections(self):
         self.disabledDirection["UP"] = False
         self.disabledDirection["DOWN"] = False

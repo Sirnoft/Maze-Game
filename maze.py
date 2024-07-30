@@ -7,6 +7,7 @@ TILESIZE = 50
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 DARKRED =(207, 0, 0)
+GREEN = (13, 255, 0)
 
 columns, rows = int(WIDTH/TILESIZE),int(HEIGHT/TILESIZE)
 
@@ -22,12 +23,18 @@ class Cell():
             "LEFT" : True
         }
         self.visited = False
-        
+        self.start = False
+        self.finish = False
 
     def draw(self,screen) -> None:
         x,y = self.x * TILESIZE, self.y * TILESIZE
         if self.visited:
             pygame.draw.rect(screen,BLACK,(x,y,TILESIZE,TILESIZE))
+
+        if self.start:
+            pygame.draw.rect(screen,DARKRED,(x,y,TILESIZE,TILESIZE))
+        if self.finish:
+            pygame.draw.rect(screen,GREEN,(x,y,TILESIZE,TILESIZE))
 
         if self.walls["TOP"]:
             pygame.draw.line(screen,WHITE,(x,y),(x+TILESIZE,y),2)
@@ -117,6 +124,11 @@ def generateGrid(columns:int,rows:int) -> list[list]:
         
     return gridCells
 
+def addStartFinishPoints(gridCells:list) -> list:
+    gridCells[0][0].start = True
+    gridCells[-1][-1].finish = True
+    return gridCells
+
 def generateMaze() -> list[list]:
     gridCells = startCells[::]
     stack = [choice(choice(startCells))]
@@ -131,7 +143,8 @@ def generateMaze() -> list[list]:
             currentCell = nextCell
         elif stack:
             currentCell = stack.pop()
-
+    
+    gridCells = addStartFinishPoints(gridCells)
     return gridCells
 
 startCells = generateGrid(columns,rows)
