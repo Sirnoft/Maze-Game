@@ -92,6 +92,20 @@ class Cell():
             self.walls["BOTTOM"] = False
             next.walls["TOP"] = False
 
+    def getRects(self):
+        x,y = self.x * TILESIZE, self.y * TILESIZE
+        rects = []
+        if self.walls["TOP"]:
+            rects.append(pygame.Rect((x,y),(TILESIZE,2)))
+        if self.walls['BOTTOM']:
+            rects.append(pygame.Rect((x, y + TILESIZE), (TILESIZE , 2)))
+        if self.walls['RIGHT']:
+            rects.append(pygame.Rect((x + TILESIZE, y), (2, TILESIZE)))
+        if self.walls['LEFT']:
+            rects.append(pygame.Rect((x, y), (2, TILESIZE)))
+
+        return rects
+
 def generateGrid(columns:int,rows:int) -> list[list]:
     gridCells = []
     temp = []
