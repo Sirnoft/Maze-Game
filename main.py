@@ -16,7 +16,6 @@ screen = pygame.display.set_mode(RES)
 pygame.display.set_caption("Maze Game")
 clock = pygame.time.Clock()
 
-gridCells = generateMaze()
 
 class Reward():
     def __init__(self,x:int,y:int) -> None:
@@ -31,12 +30,6 @@ class Reward():
     def getRect(self) -> pygame.Rect:
         return pygame.Rect((self.x,self.y),(TILESIZE/3,TILESIZE/3))
 
-    def placeOnMap(self) -> None:
-        for x in columns:
-            for y in rows:
-                if not self.detectCollision():
-                    #do placing
-                    pass
 
     def detectCollision() -> None:
         pass
@@ -44,10 +37,25 @@ class Reward():
     def calculateValue(self) -> None:
         pass
 
+    def placeOnMap(limit:int) -> list:
+        rewards = []
+        iterations = 0
+        for x in range(columns):
+            for y in range(rows):
+                choice = randint(0,1000)
+
+                if choice > 900:
+                    reward = Reward(x*TILESIZE+25,y*TILESIZE+25)
+                    rewards.append(reward)
+                    iterations +=1
+                if iterations == limit:
+                    return rewards
+
 singleMovement = True
 player = Player(5,5)
 playerRect = player.getRect()
 
+gridCells = generateMaze()
 cellRects = [cell.getRects() for layer in gridCells for cell in layer]
 
 
