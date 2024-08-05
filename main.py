@@ -1,95 +1,52 @@
 import pygame
+from random import randint
 from maze import *
-from enum import Enum
+from player import *
+
 
 RES = WIDTH, HEIGHT = 1202,902
 
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 DARKRED =(207, 0, 0)
-class DIRECTION(Enum):
-    North = 1
-    South = 2
-    Right = 3
-    Left  =  4
+
 
 pygame.init()
 screen = pygame.display.set_mode(RES)
+pygame.display.set_caption("Maze Game")
 clock = pygame.time.Clock()
 
 gridCells = generateMaze()
 
-class Player():
+class Reward():
     def __init__(self,x:int,y:int) -> None:
         self.x = x
         self.y = y
-        self.lastDirection = ""
-        self.score = 0
-        self.velocity = 5
-        self.mazesCompleted = 0
-
-        self.disabledDirection = {
-            "UP" : False,
-            "DOWN" : False,
-            "RIGHT" : False,
-            "LEFT" : False,
-        }
+        self.worth = 1
+        self.distanceFromEnd = None
 
     def draw(self) -> None:
-        rect = pygame.draw.rect(screen,WHITE,(self.x,self.y,TILESIZE/2,TILESIZE/2))
-        return rect
+        pygame.draw.rect(screen,DARKRED,(self.x,self.y,TILESIZE/3,TILESIZE/3))
+    
+    def getRect(self) -> pygame.Rect:
+        return pygame.Rect((self.x,self.y),(TILESIZE/3,TILESIZE/3))
 
-    def getRect(self) -> None:
-        return pygame.Rect((self.x,self.y),(TILESIZE/2,TILESIZE/2))
+    def placeOnMap(self) -> None:
+        for x in columns:
+            for y in rows:
+                if not self.detectCollision():
+                    #do placing
+                    pass
 
-    def getState(self) -> list:
-        return [self.x,self.y,self.score,self.mazesCompleted]
+    def detectCollision() -> None:
+        pass
 
+    def calculateValue(self) -> None:
+        pass
 
-    def movement(self,keysPressed) -> None:
-
-        if keysPressed[pygame.K_UP] and not self.disabledDirection["UP"]:
-            self.y -= self.velocity
-            self.lastDirection = "UP"
-        if keysPressed[pygame.K_DOWN] and not self.disabledDirection["DOWN"]:
-            self.y += self.velocity
-            self.lastDirection = "DOWN"
-        if keysPressed[pygame.K_RIGHT] and not self.disabledDirection["RIGHT"]:
-            self.x += self.velocity
-            self.lastDirection = "RIGHT"
-        if keysPressed[pygame.K_LEFT] and not self.disabledDirection["LEFT"]:
-            self.x -= self.velocity
-            self.lastDirection = "LEFT"
-
-    def detectCollision(self,collisionRects) -> bool:
-        for layer in collisionRects:
-            for rect in layer:
-                if playerRect.colliderect(rect):
-                    
-                    if self.lastDirection == "RIGHT":
-                        self.x = rect.left - TILESIZE/2
-                        self.disabledDirection["RIGHT"] = True
-
-                    if self.lastDirection == "LEFT":
-                        self.x = rect.right
-                        self.disabledDirection["LEFT"] = True
-
-                    if self.lastDirection == "DOWN":
-                        self.y = rect.top - TILESIZE/2
-                        self.disabledDirection["DOWN"] = True
-
-                    if self.lastDirection == "UP":
-                        self.y = rect.bottom
-                        self.disabledDirection["UP"] = True
-                    else:
-                        self.resetDirections()
-    def resetDirections(self):
-        self.disabledDirection["UP"] = False
-        self.disabledDirection["DOWN"] = False
-        self.disabledDirection["RIGHT"] = False
-        self.disabledDirection["LEFT"] = False
-
+singleMovement = True
 player = Player(5,5)
+playerRect = player.getRect()
 
 cellRects = [cell.getRects() for layer in gridCells for cell in layer]
 
@@ -98,18 +55,20 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             exit()
-        
+
+        if singleMovement and event.type == pygame.KEYDOWN:
+            player.singleMovement(event.key)
+
     screen.fill("black")
-
-    keysPressed = pygame.key.get_pressed()
-    player.movement(keysPressed)
-
     [cell.draw(screen) for layer in gridCells for cell in layer]
-    [player.draw()]
+    [player.draw(screen)]
 
-    playerRect = player.getRect()
 
+    if not singleMovement:
+        keysPressed = pygame.key.get_pressed()
+        player.multiMovement(keysPressed)
     player.detectCollision(cellRects)
+
 
 
 
