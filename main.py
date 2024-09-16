@@ -1,7 +1,7 @@
 import pygame
-from random import randint
 from maze import *
 from player import *
+from time import sleep
 
 
 RES = WIDTH, HEIGHT = 1202,902
@@ -16,49 +16,37 @@ screen = pygame.display.set_mode(RES)
 pygame.display.set_caption("Maze Game")
 clock = pygame.time.Clock()
 
-
-class Reward():
-    def __init__(self,x:int,y:int) -> None:
-        self.x = x
-        self.y = y
-        self.worth = 1
-        self.distanceFromEnd = None
-
-    def draw(self) -> None:
-        pygame.draw.rect(screen,DARKRED,(self.x,self.y,TILESIZE/3,TILESIZE/3))
-    
-    def getRect(self) -> pygame.Rect:
-        return pygame.Rect((self.x,self.y),(TILESIZE/3,TILESIZE/3))
-
-
-    def detectCollision() -> None:
-        pass
-
-    def calculateValue(self) -> None:
-        pass
-
-    def placeOnMap(limit:int) -> list:
-        rewards = []
-        iterations = 0
-        for x in range(columns):
-            for y in range(rows):
-                choice = randint(0,1000)
-
-                if choice > 900:
-                    reward = Reward(x*TILESIZE+25,y*TILESIZE+25)
-                    rewards.append(reward)
-                    iterations +=1
-                if iterations == limit:
-                    return rewards
-
-singleMovement = True
+singleMovement = False
 player = Player(5,5)
-playerRect = player.getRect()
 
 gridCells = generateMaze()
 cellRects = [cell.getRects() for layer in gridCells for cell in layer]
+finishRect = pygame.Rect((gridCells[-1][-1].x*TILESIZE,gridCells[-1][-1].y*TILESIZE),(TILESIZE,TILESIZE))
+initialPostion = pygame.Vector2(5,5)
 
 
+def distanceToEnd(playerRect:pygame.Rect,finishRect:pygame.Rect,lastPostion:pygame.Vector2) -> list[bool,pygame.Vector2]:
+    newDistanceX = finishRect.x - playerRect.x
+    newDistanceY = finishRect.y - playerRect.y
+    newDistance = pygame.Vector2(abs(newDistanceX),abs(newDistanceY))
+
+    if newDistance.x > lastPostion.x or newDistance.y > lastPostion.y:
+        return [True,newDistance]
+    else:
+        return [False,newDistance]
+
+def handleScore(player:Player,result:bool) -> None:
+    if result:
+            player.score +=0.02
+            player.score = round(player.score,2)
+
+def endCurrent(player:Player,finishRect:pygame.Rect) -> None: # Works
+    if player.getRect().colliderect(finishRect):
+        player.score += 10.0
+
+def refreshMaze() -> None:
+    pass
+    
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -67,18 +55,18 @@ while True:
         if singleMovement and event.type == pygame.KEYDOWN:
             player.singleMovement(event.key)
 
-    screen.fill("black")
     [cell.draw(screen) for layer in gridCells for cell in layer]
     [player.draw(screen)]
-
 
     if not singleMovement:
         keysPressed = pygame.key.get_pressed()
         player.multiMovement(keysPressed)
     player.detectCollision(cellRects)
 
-
-
+    result = distanceToEnd(player.getRect(),finishRect,initialPostion)
+    initialPostion = result[1]
+    handleScore(player,result[0])
+    endCurrent(player,finishRect)
 
     pygame.display.flip()
     clock.tick(60)

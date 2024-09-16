@@ -12,6 +12,14 @@ GREEN = (13, 255, 0)
 columns, rows = int(WIDTH/TILESIZE),int(HEIGHT/TILESIZE)
 
 class Cell():
+    """Defines a Cell which each have attributes:\n
+        x -> x position\n
+        y -> y position\n
+        walls -> A dictionary with all the active/inactive walls of the cell\n
+        visited -> Whether it has been visited by the maze algorithmn(Internal Use)\n
+        start -> Whether it is a starting cell\n
+        finish -> Whether it is a finishing cell\n
+    """
     def __init__(self,x:int,y:int) -> None:
         self.x = x
         self.y = y
@@ -26,16 +34,17 @@ class Cell():
         self.start = False
         self.finish = False
 
-    def draw(self,screen) -> None:
+    def draw(self,screen) -> None: # draws the grids to the screen
         x,y = self.x * TILESIZE, self.y * TILESIZE
         if self.visited:
-            pygame.draw.rect(screen,BLACK,(x,y,TILESIZE,TILESIZE))
+            pygame.draw.rect(screen,BLACK,(x,y,TILESIZE,TILESIZE)) #redundant
 
         if self.start:
-            pygame.draw.rect(screen,DARKRED,(x,y,TILESIZE,TILESIZE))
+            pygame.draw.rect(screen,DARKRED,(x,y,TILESIZE,TILESIZE)) #the cell will be Dark Red if it is a starting cell
         if self.finish:
-            pygame.draw.rect(screen,GREEN,(x,y,TILESIZE,TILESIZE))
-
+            pygame.draw.rect(screen,GREEN,(x,y,TILESIZE,TILESIZE))#the cell will be Green if it is a finishing cell
+        
+        #draws the walls of the cells which are represented by lines
         if self.walls["TOP"]:
             pygame.draw.line(screen,WHITE,(x,y),(x+TILESIZE,y),2)
         if self.walls["BOTTOM"]:
@@ -48,13 +57,13 @@ class Cell():
     def checkCell(self,direction:str) -> bool:
         x, y = self.x, self.y
         direction = direction.upper()
-
+        # finds the cell which is in the direction inputted,
         try:
-            if direction == "TOP" and y - 1 != -1:
+            if direction == "TOP" and y - 1 != -1: #validates the layer above the current cell exists
                 return startCells[x][y-1]
             if direction == "BOTTOM":
                 return startCells[x][y+1]
-            if direction == "RIGHT" and x - 1 > -1:
+            if direction == "RIGHT" and x - 1 > -1: #validates that there is a right neigbour, prevents selecting a cell from the first layer of cells
                 return startCells[x-1][y]
             if direction == "LEFT":
                 return startCells[x+1][y]
